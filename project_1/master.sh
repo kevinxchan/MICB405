@@ -15,6 +15,26 @@ DATA_DIR=$2
 FASTQC=$(which fastqc)
 BWA=$(which bwa)
 
+usage(){
+echo "
+MICB405: Project 1
+Written by Kevin Chan
+
+Description:  main script to run all analyses for project 1.
+
+Usage:        master.sh working_dir data_dir
+
+positional arguments:
+ working_dir       full path to the working directory.
+ data_dir          full path to the data directory.
+"   
+}
+
+if [ -z "$1" ] || [[ $1 == -h ]] || [[ $1 == --help ]]; then
+	usage
+	exit
+fi
+
 echo -e "\n > starting main analysis script...\n"
 
 if [[ -n "$WORK_DIR" && -n "$DATA_DIR" ]]; then
@@ -38,5 +58,9 @@ if [ -z "$(ls $WORK_DIR/fastqc)" ]; then
 else
 	echo -e "\n > detected fastqc output, skipping...\n"
 fi
+
+#############
+# ALIGNMENT #
+#############
 
 echo -e "\n > DONE\n"
