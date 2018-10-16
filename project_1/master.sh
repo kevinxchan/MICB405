@@ -12,10 +12,13 @@
 # DATA DIRECTORY: /home/kchan_mb18/project_1 <-- note this is a symlink!
 # SAMPLE NAMES: /home/kchan_mb18/p1/sample_names.txt
 # ./master.sh /home/kchan_mb18/p1 /home/kchan_mb18/project_1 /home/kchan_mb18/p1/sample_names.txt
+# NOHUP ID: 60066
 
 WORK_DIR=$1
 DATA_DIR=$2
+SAMPLE_NAMES=$3
 FASTQC=$(which fastqc)
+TRIMMOMATIC=$(which trimmomatic)
 BWA=$(which bwa)
 THREADS=5
 
@@ -74,28 +77,48 @@ else
 	echo "detected fastqc output, skipping..."
 fi
 
+################
+# QUALITY TRIM #
+################
+echo
+echo "#################################"
+echo "# QUALITY TRIM WITH TRIMMOMATIC #"
+echo "#################################"
+echo 
+
+mkdir -p $WORK_DIR/qual_trimmed/paired $WORK_DIR/qual_trimmed/unpaired
+# some obscure location. Nextera adapters (found by looking at fastQC output)
+adapter_path=/home/linuxbrew/.linuxbrew/Cellar/trinity/2.8.3/libexec/trinity-plugins/Trimmomatic-0.36/adapters/NexteraPE-PE.fa
+
+while read name; do
+	echo "trimming sample $name"
+	$TRIMMOMATIC PE -threads $THREADS -phred33 $DATA_DIR/"$name"_1.fastq.gz $DATA_DIR/"$name"_2.fastq.gz \
+	$WORK_DIR/qual_trimmed/paired/"$name"_1_paired.fastq.gz $WORK_DIR/qual_trimmed/unpaired/"$name"_1_unpaired.fastq.gz \
+	$WORK_DIR/qual_trimmed/paired/"$name"_2_paired.fastq.gz $WORK_DIR/qual_trimmed/unpaired/"$name"_2_unpaired.fastq.gz \
+	ILLUMINACLIP:$adapter_path:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+done < $SAMPLE_NAMES
+
 #############
 # ALIGNMENT #
 #############
-echo
-echo "######################"
-echo "# ALIGNMENT WITH BWA #"
-echo "######################"
-echo 
+# echo
+# echo "######################"
+# echo "# ALIGNMENT WITH BWA #"
+# echo "######################"
+# echo 
 
-mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs
+# mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs
 
-# should only need to do this once
-# cp $DATA_DIR/ref_genome.fasta $WORK_DIR/align/index
-# echo "generating index from reference fasta..."
-# $BWA index -p $WORK_DIR/align/index/ref_genome $WORK_DIR/align/index/ref_genome.fasta
+# # should only need to do this once
+# # cp $DATA_DIR/ref_genome.fasta $WORK_DIR/align/index
+# # echo "generating index from reference fasta..."
+# # $BWA index -p $WORK_DIR/align/index/ref_genome $WORK_DIR/align/index/ref_genome.fasta
 
-while read name; do
-	echo "aligning for sample $name"
-	# might not make sense to align non-human to human ref genome...
-	$BWA mem -t $THREADS $WORK_DIR/align/index/ref_genome $DATA_DIR/"$name"_1.fastq.gz $DATA_DIR/"$name"_1.fastq.gz \
-		1> $WORK_DIR/align/sam/$name.sam 2> $WORK_DIR/align/logs/$name_log.txt
-done < $WORK_DIR/sample_names.txt
+# while read name; do
+# 	echo "aligning for sample $name"
+# 	$BWA mem -t $THREADS $WORK_DIR/align/index/ref_genome $WORK_DIR/qual_trimmed/paired/"$name"_1_paired.fastq.gz $WORK_DIR/qual_trimmed/paired/"$name"_2_paired.fastq.gz \
+# 		1> $WORK_DIR/align/sam/$name.sam 2> $WORK_DIR/align/logs/$name_log.txt
+# done < $SAMPLE_NAMES
 
 echo
 echo "########"
