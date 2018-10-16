@@ -49,11 +49,12 @@ echo "# STARTING MAIN ANALYSIS SCRIPT #"
 echo "#################################"
 echo 
 
-if [[ -n "$WORK_DIR" && -n "$DATA_DIR" ]]; then
+if [[ -n "$WORK_DIR" && -n "$DATA_DIR" && -n "$SAMPLE_NAMES" ]]; then
 	echo "working directory is $WORK_DIR"
 	echo "data directory is $DATA_DIR"
+	echo "sample names file: $SAMPLE_NAMES"
 else
-	echo "ERROR: please pass in the full path to your working and data directories!"
+	echo "ERROR: please pass in the full path to your working and data directories, and sample_names.txt!"
 	exit 1
 fi
 
