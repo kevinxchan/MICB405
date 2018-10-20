@@ -17,10 +17,13 @@ WORK_DIR=$1
 DATA_DIR=$2
 SAMPLE_NAMES=$3
 
+# dependencies. assumed to be installed
 FASTQC=$(which fastqc)
 TRIMMOMATIC=$(which trimmomatic)
 BWA=$(which bwa)
 SAMTOOLS=$(which samtools)
+BCFTOOLS=$(which bcftools)
+VCFTOOLS=$(which vcftools)
 
 THREADS=5
 
@@ -104,27 +107,71 @@ fi
 #############
 # ALIGNMENT #
 #############
-echo
-echo "######################"
-echo "# ALIGNMENT WITH BWA #"
-echo "######################"
-echo 
+# echo
+# echo "######################"
+# echo "# ALIGNMENT WITH BWA #"
+# echo "######################"
+# echo 
 
-mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
+# mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
 
 # should only need to do this once
 # cp $DATA_DIR/ref_genome.fasta $WORK_DIR/align/index
 # echo "generating index from reference fasta..."
 # $BWA index -p $WORK_DIR/align/index/ref_genome $WORK_DIR/align/index/ref_genome.fasta
 
-while read name; do
-	echo "aligning for sample $name"
-	$BWA mem -t $THREADS $WORK_DIR/align/index/ref_genome $WORK_DIR/qual_trimmed/paired/"$name"_1_paired.fastq.gz $WORK_DIR/qual_trimmed/paired/"$name"_2_paired.fastq.gz \
-		1> $WORK_DIR/align/sam/"$name".sam 2> $WORK_DIR/align/logs/"$name"_log.txt
-	$SAMTOOLS view -b $WORK_DIR/align/sam/"$name".sam | \
-		$SAMTOOLS sort --threads $THREADS -o $WORK_DIR/align/bam/"$name"_sorted.bam && $SAMTOOLS index $WORK_DIR/align/bam/"$name"_sorted.bam
-done < $SAMPLE_NAMES
+# while read name; do
+# 	echo "aligning for sample $name"
+# 	$BWA mem -t $THREADS $WORK_DIR/align/index/ref_genome $WORK_DIR/qual_trimmed/paired/"$name"_1_paired.fastq.gz $WORK_DIR/qual_trimmed/paired/"$name"_2_paired.fastq.gz \
+# 		1> $WORK_DIR/align/sam/"$name".sam 2> $WORK_DIR/align/logs/"$name"_log.txt
+# 	$SAMTOOLS view -b $WORK_DIR/align/sam/"$name".sam | \
+# 		$SAMTOOLS sort --threads $THREADS -o $WORK_DIR/align/bam/"$name"_sorted.bam && $SAMTOOLS index $WORK_DIR/align/bam/"$name"_sorted.bam
+# 	# clean up
+# 	rm $WORK_DIR/align/sam/"$name".sam
+# done < $SAMPLE_NAMES
 
+###################
+# VARIANT CALLING #
+###################
+echo
+echo "###################"
+echo "# VARIANT CALLING #"
+echo "###################"
+echo 
+
+echo "NOTE:"
+echo "For this and the next portion of the pipeline, I got the parameters from the TB demo."
+echo "In the words of Dr. Jen Gardy: 'Developing a proper filtering protocol is MSc/PhD-level serious bioinformatician stuff.'"
+echo "I'm neither, and I trust her, so I'll just use these params."
+echo
+
+# mkdir -p $WORK_DIR/variants/bcf $WORK_DIR/variants/vcf_var_only
+# cp $DATA_DIR/ref_genome.fasta $WORK_DIR/variants/bcf
+
+# while read name; do
+# 	echo "piling up $name"
+# 	$SAMTOOLS mpileup -q 30 -u -f $WORK_DIR/variants/bcf/ref_genome.fasta $WORK_DIR/align/bam/"$name"_sorted.bam > $WORK_DIR/variants/bcf/"$name".bcf -I
+# 	echo "outputting variant sites for $name"
+# 	$BCFTOOLS call -O v -mv $WORK_DIR/variants/bcf/"$name".bcf > $WORK_DIR/variants/vcf_var_only/"$name".vcf
+# done < $SAMPLE_NAMES
+
+#####################
+# VARIANT FILTERING #
+#####################
+echo
+echo "#####################"
+echo "# VARIANT FILTERING #"
+echo "#####################"
+echo 
+
+mkdir -p $WORK_DIR/variants/vcf_filtered
+
+while read name; do
+	echo "filtering low quality variants for $name"
+	# filter out DP < 5, "weird DP4", qual score >= 150
+	$VCFTOOLS --vcf $WORK_DIR/variants/vcf_var_only/"$name".vcf --minDP 5.0 --stdout --recode | \
+		$BCFTOOLS filter --exclude "QUAL < 150" > $WORK_DIR/variants/vcf_filtered/"$name"_DP5_QUAL150.vcf
+done < $SAMPLE_NAMES
 
 
 echo
