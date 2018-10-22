@@ -24,6 +24,10 @@ BWA=$(which bwa)
 SAMTOOLS=$(which samtools)
 BCFTOOLS=$(which bcftools)
 VCFTOOLS=$(which vcftools)
+PYTHON=$(which python3)
+MAFFT=$(which mafft)
+MUSCLE=$(which muscle)
+TRIMAL=$(which trimal)
 
 THREADS=5
 
@@ -164,15 +168,46 @@ echo "# VARIANT FILTERING #"
 echo "#####################"
 echo 
 
-mkdir -p $WORK_DIR/variants/vcf_filtered
+# mkdir -p $WORK_DIR/variants/vcf_filtered
 
-while read name; do
-	echo "filtering low quality variants for $name"
-	# filter out DP < 5, "weird DP4", qual score >= 150
-	$VCFTOOLS --vcf $WORK_DIR/variants/vcf_var_only/"$name".vcf --minDP 5.0 --stdout --recode | \
-		$BCFTOOLS filter --exclude "QUAL < 150" > $WORK_DIR/variants/vcf_filtered/"$name"_DP5_QUAL150.vcf
-done < $SAMPLE_NAMES
+# while read name; do
+# 	echo "filtering low quality variants for $name"
+# 	# filter out DP < 5, "weird DP4", qual score >= 150
+# 	$VCFTOOLS --vcf $WORK_DIR/variants/vcf_var_only/"$name".vcf --minDP 5.0 --stdout --recode | \
+# 		$BCFTOOLS filter --exclude "QUAL < 150" > $WORK_DIR/variants/vcf_filtered/"$name"_DP5_QUAL150.vcf
+# done < $SAMPLE_NAMES
 
+printf "checking if vcf_to_fasta_het.py exists..."
+if [ -e $WORK_DIR/vcf_to_fasta_het.py ]; then
+	echo "yes"
+else
+	echo "no"
+	echo "retrieving script from github"
+	echo
+	wget https://raw.githubusercontent.com/jlgardy/tb_demo/master/vcf_to_fasta_het.py  -O $WORK_DIR/vcf_to_fasta_het.py
+fi
+
+# echo "running custom python script for variant FASTA and tabular output..."
+# $PYTHON $WORK_DIR/vcf_to_fasta_het.py -x $WORK_DIR/variants/vcf_filtered/ snps_all && mv $WORK_DIR/variants/vcf_filtered/snps_all* $WORK_DIR/variants/
+
+#########################################
+# MULTIPLE SEQUENCE ALIGNMENT AND TREES #
+#########################################
+echo
+echo "###############################"
+echo "# MULTIPLE SEQUENCE ALIGNMENT #"
+echo "###############################"
+echo 
+
+mkdir -p $WORK_DIR/tree
+
+echo "performing MSA with mafft and muscle..."
+$MAFFT --auto --thread $THREADS $WORK_DIR/variants/snps_all.fasta > $WORK_DIR/tree/snps_all_mafft.mfa
+$MUSCLE -in $WORK_DIR/variants/snps_all.fasta -out $WORK_DIR/tree/snps_all_muscle.mfa
+
+echo "cleaning up with trimal..."
+$TRIMAL -in $WORK_DIR/tree/snps_all_mafft.mfa -out $WORK_DIR/tree/snps_all_mafft_trimal_auto.mfa -automated1
+$TRIMAL -in $WORK_DIR/tree/snps_all_muscle.mfa -out $WORK_DIR/tree/snps_all_muscle_trimal_auto.mfa -automated1
 
 echo
 echo "########"
