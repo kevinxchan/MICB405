@@ -23,14 +23,14 @@ output_dir = args.output_dir
 id_taxa_map = {}
 
 print("parsing archaeal classifications")
-with open(archaea_placements, "rU") as f:
+with open(archaea_placements, "r") as f:
 	for i, line in enumerate(f):
 		bin_name, tax_string = line.strip().split("\t")
 		top_level_taxa = tax_string.split(";")[0].replace("d__", "")
 		id_taxa_map[bin_name] = top_level_taxa
 
 print("parsing bacterial classifications")
-with open(bacteria_placements, "rU") as f:
+with open(bacteria_placements, "r") as f:
 	for i, line in enumerate(f):
 		bin_name, tax_string = line.strip().split("\t")
 		top_level_taxa = tax_string.split(";")[0].replace("d__", "")
@@ -43,7 +43,7 @@ outfile = open(outpath, "w")
 for file in os.listdir(mags):
 	if file.endswith(".fa"):
 		bin_name = file.replace(".fa", "")
-		outfile.write(bin_name + "\t" + id_taxa_map[bin_name] + "\n")
+		outfile.write(bin_name + ".fa" + "\t" + id_taxa_map[bin_name] + "\n")
 outfile.close()
 
 print("done. goodbye")
