@@ -16,6 +16,7 @@ WORK_DIR=$1
 DATA_DIR=$2
 
 # dependencies. assumed to be installed
+PYTHON3=$(which python3)
 PROKKA=$(which prokka)
 
 THREADS=5
@@ -62,32 +63,32 @@ echo "# PRE-PROCESSING #"
 echo "##################"
 echo 
 
-cd $WORK_DIR/MedQPlus_MAGs
-for f in *.fa; do
-	echo "$f"
-done
+if [[ ! -f $WORK_DIR/match_mag_taxa.py ]]; then
+	wget https://raw.githubusercontent.com/kevinxchan/MICB405/master/project_2/match_mag_taxa.py -O match_mag_taxa.py
+fi
 
-cd $DATA_DIR/MetaBAT2_SaanichInlet_200m/gtdbtk_output/ # assumed to be here
-awk '{print $1}' gtdbtk.ar122.classification_pplacer.tsv
+$PYTHON3 match_mag_taxa.py -a $DATA_DIR/MetaBAT2_SaanichInlet_200m/gtdbtk_output/gtdbtk.ar122.classification_pplacer.tsv -b $DATA_DIR/MetaBAT2_SaanichInlet_200m/gtdbtk_output/gtdbtk.bac120.classification_pplacer.tsv -m $DATA_DIR/MetaBAT2_SaanichInlet_200m/MedQPlus_MAGs -o $WORK_DIR
 
-##########
-# PROKKA #
-##########
 echo
 echo "##########"
 echo "# PROKKA #"
 echo "##########"
 echo 
 
-# mkdir -p $WORK_DIR/fastqc
+mkdir -p $WORK_DIR/prokka_output
 
-# if [ -z "$(ls $WORK_DIR/fastqc)" ]; then
-# 	echo "running fastqc for all samples..."
-# 	$FASTQC -t $THREADS -o $WORK_DIR/fastqc
-# else
-# 	echo "detected fastqc output, skipping..."
-# fi
+while read line; do
+	name=$(echo $line | awk '{print $1}')
+	name=${name//.fa}
+	taxa=$(echo $line | awk '{print $2}')
+	mkdir -p $WORK_DIR/prokka_output/"$name"
 
+	echo
+	echo "processing MAG $name"
+	echo
+
+	$PROKKA --force --outdir $WORK_DIR/prokka_output/"$name" --prefix $name --kingdom $taxa --cpus $THREADS $DATA_DIR/MetaBAT2_SaanichInlet_200m/MedQPlus_MAGs/$line
+done < $WORK_DIR/id_taxa_map.txt
 
 
 
