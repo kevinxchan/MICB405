@@ -147,5 +147,5 @@ echo "SaanichInlet_200m_all_MAGs_ORFs_ko.txt. finally, run this command:"
 echo
 echo "grep '\sK' $WORK_DIR/SaanichInlet_200m_all_MAGs_ORFs_ko.txt > $WORK_DIR/SaanichInlet_200m_all_MAGs_ORFs_ko.cleaned.txt"
 echo
-echo "and then you're golden."
+echo "and then you're to export the cleaned file to R."
 echo
