@@ -120,7 +120,7 @@ echo
 
 mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
 
-should only need to do this once
+# should only need to do this once
 cp $DATA_DIR/ref_genome.fasta $WORK_DIR/align/index
 echo "generating index from reference fasta..."
 $BWA index -p $WORK_DIR/align/index/ref_genome $WORK_DIR/align/index/ref_genome.fasta
