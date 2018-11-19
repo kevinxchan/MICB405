@@ -22,6 +22,7 @@ ASSIGNED_DEPTH=200m
 PYTHON3=$(which python3)
 PROKKA=$(which prokka)
 BWA=$(which bwa)
+RPKM=/projects/micb405/resources/project_2/2018/rpkm
 
 THREADS=5
 
@@ -117,21 +118,30 @@ echo "# ALIGNING METATRANSCRIPTOME READS #"
 echo "####################################"
 echo
 
-mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
-mv $WORK_DIR/SaanichInlet_200m_all_ref.ffn $WORK_DIR/align/index
+# mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
+# mv $WORK_DIR/SaanichInlet_200m_all_ref.ffn $WORK_DIR/align/index
 
-echo "generating index from reference fasta..."
-$BWA index -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $WORK_DIR/align/index/SaanichInlet_200m_all_ref.ffn
+# echo "generating index from reference fasta..."
+# $BWA index -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $WORK_DIR/align/index/SaanichInlet_200m_all_ref.ffn
 
-for f in $META_T_DIR/*"$ASSIGNED_DEPTH"*; do
+# for f in $META_T_DIR/*"$ASSIGNED_DEPTH"*; do
+# 	name=$(basename $f)
+# 	name=${name//.gz}
+# 	name=${name//.fastq}
+# 	echo "aligning for file $name"
+# 	$BWA mem -t $THREADS -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $f \
+# 		1> $WORK_DIR/align/sam/"$name".sam 2> $WORK_DIR/align/logs/"$name"_log.txt
+# done
+
+echo "generating rpkm csvs..."
+mkdir -p $WORK_DIR/rpkm
+
+for f in $WORK_DIR/align/sam/*; do
 	name=$(basename $f)
-	name=${name//.gz}
-	name=${name//.fastq}
-	echo "aligning for file $name"
-	$BWA mem -t $THREADS -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $f \
-		1> $WORK_DIR/align/sam/"$name".sam 2> $WORK_DIR/align/logs/"$name"_log.txt
+	name=$(echo $name | cut -d. -f1)
+	echo "rpkm for $name"
+	$RPKM -c $WORK_DIR/align/index/SaanichInlet_200m_all_ref.ffn -a $f -o $WORK_DIR/rpkm/$name.rpkm.csv
 done
-
 
 echo
 echo "########"
