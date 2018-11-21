@@ -84,20 +84,20 @@ echo "# PROKKA #"
 echo "##########"
 echo 
 
-# mkdir -p $WORK_DIR/prokka_output
+mkdir -p $WORK_DIR/prokka_output
 
-# while read line; do
-# 	name=$(echo $line | awk '{print $1}')
-# 	name=${name//.fa}
-# 	taxa=$(echo $line | awk '{print $2}')
-# 	mkdir -p $WORK_DIR/prokka_output/"$name"
+while read line; do
+	name=$(echo $line | awk '{print $1}')
+	name=${name//.fa}
+	taxa=$(echo $line | awk '{print $2}')
+	mkdir -p $WORK_DIR/prokka_output/"$name"
 
-# 	echo
-# 	echo "processing MAG $name"
-# 	echo
+	echo
+	echo "processing MAG $name"
+	echo
 
-# 	$PROKKA --force --outdir $WORK_DIR/prokka_output/"$name" --prefix $name --kingdom $taxa --cpus $THREADS $DATA_DIR/MetaBAT2_SaanichInlet_200m/MedQPlus_MAGs/$line
-# done < $WORK_DIR/id_taxa_map.txt
+	$PROKKA --force --outdir $WORK_DIR/prokka_output/"$name" --prefix $name --kingdom $taxa --cpus $THREADS $DATA_DIR/MetaBAT2_SaanichInlet_200m/MedQPlus_MAGs/$line
+done < $WORK_DIR/id_taxa_map.txt
 
 echo
 printf "concatenating all ORFs (.faa files) and .ffn files separately from each MAG..."
@@ -118,20 +118,20 @@ echo "# ALIGNING METATRANSCRIPTOME READS #"
 echo "####################################"
 echo
 
-# mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
-# mv $WORK_DIR/SaanichInlet_200m_all_ref.ffn $WORK_DIR/align/index
+mkdir -p $WORK_DIR/align/index $WORK_DIR/align/sam $WORK_DIR/align/logs $WORK_DIR/align/bam
+mv $WORK_DIR/SaanichInlet_200m_all_ref.ffn $WORK_DIR/align/index
 
-# echo "generating index from reference fasta..."
-# $BWA index -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $WORK_DIR/align/index/SaanichInlet_200m_all_ref.ffn
+echo "generating index from reference fasta..."
+$BWA index -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $WORK_DIR/align/index/SaanichInlet_200m_all_ref.ffn
 
-# for f in $META_T_DIR/*"$ASSIGNED_DEPTH"*; do
-# 	name=$(basename $f)
-# 	name=${name//.gz}
-# 	name=${name//.fastq}
-# 	echo "aligning for file $name"
-# 	$BWA mem -t $THREADS -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $f \
-# 		1> $WORK_DIR/align/sam/"$name".sam 2> $WORK_DIR/align/logs/"$name"_log.txt
-# done
+for f in $META_T_DIR/*"$ASSIGNED_DEPTH"*; do
+	name=$(basename $f)
+	name=${name//.gz}
+	name=${name//.fastq}
+	echo "aligning for file $name"
+	$BWA mem -t $THREADS -p $WORK_DIR/align/index/SaanichInlet_200m_all_ref $f \
+		1> $WORK_DIR/align/sam/"$name".sam 2> $WORK_DIR/align/logs/"$name"_log.txt
+done
 
 echo "generating rpkm csvs..."
 mkdir -p $WORK_DIR/rpkm
