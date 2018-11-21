@@ -1,7 +1,7 @@
 """
 USAGE:
 
-python3 
+python3 scripts/project_2/get_complete_contam_tax.py -c SaanichInlet_200m/MetaBAT2_SaanichInlet_200m/MetaBAT2_SaanichInlet_200m_min1500_checkM_stdout.tsv -a SaanichInlet_200m/MetaBAT2_SaanichInlet_200m/gtdbtk_output/gtdbtk.ar122.classification_pplacer.tsv -b SaanichInlet_200m/MetaBAT2_SaanichInlet_200m/gtdbtk_output/gtdbtk.bac120.classification_pplacer.tsv -t p -o /home/kchan_mb18/
 """
 
 import argparse
