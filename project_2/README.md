@@ -14,3 +14,13 @@ pplacer taxonomic classification via gtdbdk. Used to loop over MAGs when running
 - `pathview_mag_match.py`: A script which maps KO number from a pathview diagram to Prokka IDs, and then Prokka IDs to bin names and their assigned taxonomies. Useful for profiling distributed metabolic pathways.
 
 - `pie_chart_phyla.R`: R script which generates a pie chart, consisting of proportions of each MAG classified by taxonomy at the phylum level.
+
+- `CheckM contamination completeness plot.R`: which contains an R script for a plot that visualizes the output of CheckM quality assessments. Only the medium- to high-quality MAGs were included in this analysis. In addition, an abundance layer representing the mean RPKM values for a given MAG is integrated into the plot. 
+
+- `Saanich Inlet Chemical and environmental gradietns.R`: R script which generates two plots, one for the chemical gradients sampled at different depths and the other for the environmental parameters of Saanich Inlet at different depths.
+
+- `Density scatterplot transformation of RPKMs.R`: R script providing rationale for the logarithmic transformation of RPKM values prior to pathview analysis. A density scatterplot of RPKM values regardless of KO identifier before and after it has undergone a logarithmic transformation.
+
+- `Pathview grouping KOs by taxonomy.R` R script for the data augmentation in preparation for the pathview package visualization of metabolic pathways. 
+
+- `RPKM sulfur bubble plot.R`: R script for the visualization of transcriptional activity of the microbial community at the class taxonomic level against all the genes in the sulfur metabolism KEGG pathway. The transcriptional activity of a given microbe is provided as a function of point size, which represents the Log summed RPKM values.  
