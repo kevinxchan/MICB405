@@ -121,7 +121,51 @@ normal_RPKM_figure <- comparing_RPKM_log_RPKM %>%
         panel.grid.major = element_line(colour = "#bdbdbd", linetype = "dotted"),
         panel.grid.minor = element_blank()) +
   scale_y_continuous(breaks = seq(0, 35000, 5000)) +
-  labs(x = "Open reading frame identifier (KO)", y = "RPKM")
+  labs(x = "Open reading frame identifier (KO)", y = "RPKM",
+       subtitle = "Density scatterplot of RPKM values")
+
+## Normality
+
+### non-transformed
+
+normal_RPKM_values <- comparing_RPKM_log_RPKM %>%
+  filter(variable == "total")
+
+RPKM_slope <- diff(quantile(normal_RPKM_values$value, c(0.25, 0.75), na.rm = T)) / 
+  diff(qnorm(c(0.25, 0.75)))
+
+RPKM_intercept <- quantile(normal_RPKM_values$value, 0.25, na.rm = T) - 
+  RPKM_slope * qnorm(0.25)
+
+normal_RPKM_plot_1 <- ggplot(normal_RPKM_values, aes(sample = value)) +
+  stat_qq(pch = 1, colour = "black",  fill = "black", alpha = 0.35, size = 4) +
+  stat_qq(pch = 19, colour = "black",  fill = "black", alpha = 0.15, size = 4) +
+  geom_abline(aes(slope = RPKM_slope, intercept = RPKM_intercept),
+              size = 1, col = "red", alpha = 0.5, lty = 1) +
+  labs(y = "RPKM", x = "Theoretical distribution")  +
+  scale_x_continuous(breaks = seq(-4, 4, 1)) +
+  scale_y_continuous(breaks = seq(0, 30000, 5000)) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 14),
+        text = element_text(size = 14), 
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "#bdbdbd", linetype = "dotted"),
+        panel.grid.minor = element_blank()) 
+
+normal_RPKM_plot_2 <- axis_canvas(normal_RPKM_plot_1, axis = "y") +
+  geom_vridgeline(data = normal_RPKM_values, aes(y = value, x = 0, width = ..density..),
+                  stat = "ydensity", alpha = 0.7, size = 0.75, trim = F) 
+
+normal_RPKM_dens_qq_plot <- insert_yaxis_grob(normal_RPKM_plot_1, normal_RPKM_plot_2, grid::unit(0.2, "null"),
+                                              position = "right")
+
+normal_RPKM_qq_figure <- ggdraw(normal_RPKM_dens_qq_plot)
+
+### histogram
+
+ggplot(normal_RPKM_values, aes())
+
+## log-transformed
 
 log_RPKM_figure <- comparing_RPKM_log_RPKM %>%
   filter(variable == "log_total") %>%
@@ -136,7 +180,46 @@ log_RPKM_figure <- comparing_RPKM_log_RPKM %>%
         panel.grid.major = element_line(colour = "#bdbdbd", linetype = "dotted"),
         panel.grid.minor = element_blank()) +
   scale_y_continuous(breaks = seq(-2, 4, 1)) +
-  labs(x = "Open reading frame identifier (KO)", y = "Log RPKM") +
+  labs(x = "Open reading frame identifier (KO)", y = "Log RPKM",
+       subtitle = "Density scatterplot of Log RPKM values") +
   annotation_logticks(sides = "l")
 
-plot_grid(normal_RPKM_figure, log_RPKM_figure, labels=c("A", "B"), align="h", axis="tb")
+### DEnsity plot log transformed
+
+log_RPKM_values <- comparing_RPKM_log_RPKM %>%
+  filter(variable == "log_total")
+
+log_RPKM_slope <- diff(quantile(log_RPKM_values$value, c(0.25, 0.75), na.rm = T)) / 
+  diff(qnorm(c(0.25, 0.75)))
+
+log_RPKM_intercept <- quantile(log_RPKM_values$value, 0.25, na.rm = T) - 
+  log_RPKM_slope * qnorm(0.25)
+
+log_RPKM_plot_1 <- ggplot(log_RPKM_values, aes(sample = value)) +
+  stat_qq(pch = 1, colour = "black",  fill = "black", alpha = 0.35, size = 4) +
+  stat_qq(pch = 19, colour = "black",  fill = "black", alpha = 0.15, size = 4) +
+  geom_abline(aes(slope = log_RPKM_slope, intercept = log_RPKM_intercept),
+              size = 1, col = "red", alpha = 0.5, lty = 1) +
+  labs(y = "Log RPKM", x = "Theoretical distribution")  +
+  scale_x_continuous(breaks = seq(-4, 4, 1)) +
+  scale_y_continuous(breaks = seq(-1, 4, 1)) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 14),
+        text = element_text(size = 14), 
+        panel.background = element_blank(),
+        panel.grid.major = element_line(colour = "#bdbdbd", linetype = "dotted"),
+        panel.grid.minor = element_blank()) +
+  annotation_logticks(sides = "l")
+
+log_RPKM_plot_2 <- axis_canvas(log_RPKM_plot_1, axis = "y") +
+  geom_vridgeline(data = log_RPKM_values, aes(y = value, x = 0, width = ..density..),
+                  stat = "ydensity", alpha = 0.7, size = 0.75, trim = F, fill = "darkgrey") 
+
+log_RPKM_dens_qq_plot <- insert_yaxis_grob(log_RPKM_plot_1, log_RPKM_plot_2, grid::unit(0.2, "null"),
+                                              position = "right")
+
+log_RPKM_qq_figure <- ggdraw(log_RPKM_dens_qq_plot)
+
+
+plot_grid(normal_RPKM_figure, log_RPKM_figure, 
+          normal_RPKM_qq_figure, log_RPKM_qq_figure, labels=c("A", "B", "C", "D"), align="hv", axis="tb", ncol = 2)
