@@ -24,6 +24,40 @@ ggplot(Chemical_gradients, aes(y = Depth_m, x = Concentrations, colour = Chemica
     panel.grid.minor = element_blank()
   )
 
+Chemical_gradients %>%
+  filter(Cruise == 42 |
+           Cruise == 48 | 
+           Cruise == 72 | 
+           Cruise == 73 | 
+           Cruise == 74 | 
+           Cruise == 75) %>%
+  filter(Chemical != "Mean CO2",
+         Chemical != "Mean N2",
+         Chemical != "Mean O2") %>%
+  mutate(Cruise = gsub("42", "SI042", Cruise),
+         Cruise = gsub("48", "SI048", Cruise),
+         Cruise = gsub("72", "SI072", Cruise),
+         Cruise = gsub("73", "SI073", Cruise),
+         Cruise = gsub("74", "SI074", Cruise),
+         Cruise = gsub("75", "SI075", Cruise)) %>%
+  ggplot(aes(y = Depth_m, x = Concentrations)) +
+  geom_point(alpha = 0.75, size = 2, aes(pch = factor(Cruise), colour = factor(Date))) +
+  geom_line(aes(group = Cruise, colour = factor(Date)), alpha = 0.5) +
+  facet_wrap(~ Chemical, scales = "free_x") +
+  scale_y_reverse() +
+  scale_shape_manual(values = c(16, 15, 17, 18, 1, 6), name = "Cruise") +
+  theme_bw() +
+  scale_colour_manual(values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E",
+                                   "#E6AB02"),
+                        name = "Date of sampling") +
+  labs(y = "Depth (meters)", x = expression("Concentration ("*mu*"M)")) +
+  theme(
+    text = element_text(size = 14),
+    panel.background = element_blank(),
+    panel.grid.major = element_line(colour = "#bdbdbd", linetype = "dotted"),
+    panel.grid.minor = element_blank()
+  )
+
 # "Note: different scales; lines represent measurements taken from the same cruise"
 
 # Seeing if time may be a possible factor for chemical concentration gradients
@@ -70,7 +104,40 @@ tibble <- depth_characteristics %>%
 Cruise_93 <- depth_characteristics %>%
   filter(Cruise == 93)
 
-ggplot(depth_characteristics, aes(y = Depth_m, x = Measures, colour = Characteristics)) +
+depth_characteristics %>%
+  filter(Cruise == 42 |
+           Cruise == 48 | 
+           Cruise == 72 | 
+           Cruise == 73 | 
+           Cruise == 74 | 
+           Cruise == 75) %>%
+  mutate(Cruise = gsub("42", "SI042", Cruise),
+         Cruise = gsub("48", "SI048", Cruise),
+         Cruise = gsub("72", "SI072", Cruise),
+         Cruise = gsub("73", "SI073", Cruise),
+         Cruise = gsub("74", "SI074", Cruise),
+         Cruise = gsub("75", "SI075", Cruise)) %>%
+ggplot(aes(y = Depth_m, x = Measures, colour = Characteristics)) +
+  geom_point(alpha = 0.75, size = 2, aes(pch = factor(Cruise), colour = factor(Date))) +
+  geom_line(aes(group = Cruise, colour = factor(Date)), alpha = 0.5) +
+  facet_wrap(~ Characteristics, scales = "free_x") +
+  scale_y_reverse() +
+  scale_shape_manual(values = c(16, 15, 17, 18, 1, 6), name = "Cruise") +
+  theme_bw() +
+  scale_colour_manual(values = c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E",
+                                 "#E6AB02"),
+                      name = "Date of sampling") +
+  labs(subtitle = expression("Units: Density ("*theta*"); Cells (per ml); Salinity (psu); Temperature (Celsius)"),
+       y = "Depth (meters)", x = "Evironmental parameters") +
+  theme(
+    text = element_text(size = 14),
+    panel.background = element_blank(),
+    panel.grid.major = element_line(colour = "#bdbdbd", linetype = "dotted"),
+    panel.grid.minor = element_blank()
+  )
+  
+  
+  
   geom_point(alpha = 0.25) +
   geom_line(aes(group = Cruise), alpha = 0.25) +
   facet_wrap(~ Characteristics, scales = "free_x") +
@@ -131,7 +198,7 @@ dat_class %>%
   geom_abline(slope = 0, intercept = 0, lty = 3, alpha = 0.75) +
   labs(x = "Depth (m)", y = "Concentration (uM)")
 
-dat_project_2 %>%
+Chemical_gradients %>%
   filter(Cruise == 42 |
            Cruise == 48 | 
            Cruise == 72 | 
@@ -141,3 +208,4 @@ dat_project_2 %>%
   ggplot(aes(x = Date, y = Concentration, colour = Chemical)) +
   geom_point() +
   facet_grid(~ Cruise, scales = "free_y")
+
